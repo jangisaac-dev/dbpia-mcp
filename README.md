@@ -1,7 +1,7 @@
 # dbpia-mcp
 
 [![npm version](https://img.shields.io/npm/v/dbpia-mcp.svg)](https://www.npmjs.com/package/dbpia-mcp)
-[![License](https://img.shields.io/npm/l/dbpia-mcp.svg)](https://github.com/jangisaac-dev/dbpia-mcp/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [한국어](./README.ko.md) | English
 
