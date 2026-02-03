@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { runQuery } from '../dbpia/runQuery.js';
 import { localSearch } from '../db/localSearch.js';
 import { exportToJsonl } from '../export/jsonl.js';
-import { loginToDbpia, checkLoginStatus, logoutFromDbpia, downloadPdf, isSessionActive } from '../browser/index.js';
+import { openInBrowser, getArticleUrl } from '../browser/open.js';
 import { formatCitation, type CitationStyle, type ArticleMetadata } from '../citation/index.js';
 import { getArticleById, saveFulltext, searchFulltext } from '../db/articles.js';
 
@@ -144,51 +144,14 @@ export async function handleDetail(db: Database.Database, args: any) {
   };
 }
 
-export async function handleLogin(_db: Database.Database, args: any) {
-  const { timeoutSeconds } = args;
-  const result = await loginToDbpia(timeoutSeconds || 120);
+export async function handleOpenArticle(_db: Database.Database, args: any) {
+  const { articleId } = args;
+  const url = getArticleUrl(articleId);
+  const result = await openInBrowser(url);
 
   return {
     content: [{ type: 'text' as const, text: result.message }],
-    structuredContent: result as any
-  };
-}
-
-export async function handleLogout(_db: Database.Database, _args: any) {
-  const result = await logoutFromDbpia();
-
-  return {
-    content: [{ type: 'text' as const, text: result.message }],
-    structuredContent: result as any
-  };
-}
-
-export async function handleLoginStatus(_db: Database.Database, _args: any) {
-  const result = await checkLoginStatus();
-
-  return {
-    content: [{ type: 'text' as const, text: result.isLoggedIn ? `Logged in as ${result.username || 'unknown'}` : 'Not logged in' }],
-    structuredContent: result as any
-  };
-}
-
-export async function handleDownload(_db: Database.Database, args: any) {
-  if (!isSessionActive()) {
-    return {
-      content: [{ type: 'text' as const, text: 'Not logged in. Call dbpia_login first.' }],
-      structuredContent: { success: false, message: 'Not logged in' } as any
-    };
-  }
-
-  const result = await downloadPdf({
-    articleId: args.articleId,
-    outputDir: args.outputDir,
-    filename: args.filename,
-  });
-
-  return {
-    content: [{ type: 'text' as const, text: result.message }],
-    structuredContent: result as any
+    structuredContent: { ...result, url } as any
   };
 }
 

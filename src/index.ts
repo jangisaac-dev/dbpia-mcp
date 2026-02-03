@@ -8,10 +8,7 @@ import {
   LocalSearchSchema,
   ExportSchema,
   DetailSchema,
-  LoginSchema,
-  LogoutSchema,
-  LoginStatusSchema,
-  DownloadSchema,
+  OpenArticleSchema,
   CiteSchema,
   FulltextIndexSchema,
   FulltextSearchSchema
@@ -23,16 +20,12 @@ import {
   handleLocalSearch,
   handleExport,
   handleDetail,
-  handleLogin,
-  handleLogout,
-  handleLoginStatus,
-  handleDownload,
+  handleOpenArticle,
   handleCite,
   handleFulltextIndex,
   handleFulltextSearch
 } from "./mcp/tools.js";
 import { openDb, migrate } from "./db/index.js";
-import { closeBrowser } from "./browser/index.js";
 import path from "path";
 import os from "os";
 
@@ -117,31 +110,10 @@ function registerTools(db: Db): void {
   }
 
   server.tool(
-    "dbpia_login",
-    "Log in to DBpia with username/password for PDF downloads.",
-    LoginSchema,
-    safeTool("dbpia_login", (args) => handleLogin(db, args))
-  );
-
-  server.tool(
-    "dbpia_logout",
-    "Log out from DBpia.",
-    LogoutSchema,
-    safeTool("dbpia_logout", (args) => handleLogout(db, args))
-  );
-
-  server.tool(
-    "dbpia_login_status",
-    "Check current login status.",
-    LoginStatusSchema,
-    safeTool("dbpia_login_status", (args) => handleLoginStatus(db, args))
-  );
-
-  server.tool(
-    "dbpia_download",
-    "Download PDF for an article (requires login).",
-    DownloadSchema,
-    safeTool("dbpia_download", (args) => handleDownload(db, args))
+    "dbpia_open",
+    "Open article page in default browser for viewing or downloading PDF.",
+    OpenArticleSchema,
+    safeTool("dbpia_open", (args) => handleOpenArticle(db, args))
   );
 
   server.tool(
@@ -181,7 +153,6 @@ async function main() {
 
   const shutdown = async () => {
     clearInterval(keepAlive);
-    await closeBrowser();
     await server.close();
     db.close();
     process.exit(0);

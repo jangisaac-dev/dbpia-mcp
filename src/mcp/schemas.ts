@@ -45,18 +45,8 @@ export const DetailSchema = {
   refresh: z.boolean().optional().describe('Force refresh from remote'),
 };
 
-export const LoginSchema = {
-  timeoutSeconds: z.number().optional().default(120).describe('Timeout in seconds to wait for manual login (default: 120)'),
-};
-
-export const LogoutSchema = {};
-
-export const LoginStatusSchema = {};
-
-export const DownloadSchema = {
-  articleId: z.string().describe('Article ID (nodeId)'),
-  outputDir: z.string().optional().describe('Directory to save the PDF'),
-  filename: z.string().optional().describe('Custom filename for the PDF'),
+export const OpenArticleSchema = {
+  articleId: z.string().describe('Article ID (nodeId) to open in browser'),
 };
 
 export const CiteSchema = {
