@@ -1,6 +1,6 @@
 {
   "name": "dbpia-mcp",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "DBpia MCP server for Korean academic paper search, citation generation, and fulltext indexing",
   "main": "dist/index.js",
   "bin": {
