@@ -7,14 +7,16 @@
 
 MCP server for [DBpia](https://www.dbpia.co.kr) - Korea's largest academic paper database.
 
+This server allows LLMs to search for academic papers, generate citations, cache results locally, and even index PDF content for full-text search.
+
 ## Features
 
 - **Search**: Keyword and advanced search (author, publisher, journal)
-- **Top Papers**: Browse popular/highly-rated papers
+- **Top Papers**: Browse popular/highly-rated papers by category/date
 - **Citation**: Generate citations in Chicago, APA, MLA, BibTeX, Harvard, Vancouver
 - **Open in Browser**: Open article pages directly in your default browser
-- **Fulltext Search**: Index PDFs and search content (OCR CLI hook supported)
-- **Local Cache**: SQLite storage for offline access and export
+- **Local Cache**: SQLite storage for offline access and export (7-day default cache)
+- **Export**: Export cached data to JSONL format
 
 ## Installation
 
@@ -22,21 +24,35 @@ MCP server for [DBpia](https://www.dbpia.co.kr) - Korea's largest academic paper
 npx dbpia-mcp@latest
 ```
 
-## API Key
+## API Key Setup
 
 1. Visit [DBpia Open API Portal](https://api.dbpia.co.kr/openApi/index.do)
-2. Register and get API key from [Key Management](https://api.dbpia.co.kr/openApi/key/keyManage.do)
+2. Register and get your API key from [Key Management](https://api.dbpia.co.kr/openApi/key/keyManage.do)
 
-## Setup (OpenCode / Claude Desktop)
+## Configuration
 
-```jsonc
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DBPIA_API_KEY` | **Required**. Your DBpia Open API Key | - |
+| `DBPIA_BUSINESS_API_KEY` | Optional. Required for `dbpia_detail` tool | - |
+| `DBPIA_DB_PATH` | Directory for SQLite database | `~/.dbpia-mcp` |
+| `DBPIA_DEBUG` | Enable verbose logging | `false` |
+| `DBPIA_QUERY_TTL_DAYS` | Days to keep search results in cache | `7` |
+
+### OpenCode / Claude Desktop Configuration
+
+Add this to your `opencode.json` or `claude_desktop_config.json`:
+
+```json
 {
   "mcpServers": {
     "dbpia": {
       "command": "npx",
       "args": ["dbpia-mcp@latest"],
       "env": {
-        "DBPIA_API_KEY": "your_api_key"
+        "DBPIA_API_KEY": "your_api_key_here"
       }
     }
   }
@@ -45,55 +61,51 @@ npx dbpia-mcp@latest
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| `dbpia_search` | Keyword search |
-| `dbpia_search_advanced` | Advanced search (author, publisher, journal) |
-| `dbpia_top_papers` | Popular/rated papers by year/month |
-| `dbpia_local_search` | Search local cache |
-| `dbpia_export` | Export cached articles to JSONL |
-| `dbpia_open` | Open article page in browser |
-| `dbpia_cite` | Generate citation (Chicago default) |
-| `dbpia_fulltext_index` | Index PDF content (OCR supported) |
-| `dbpia_fulltext_search` | Search indexed fulltext |
+### Search & Discovery
+
+| Tool | Description | Arguments |
+|------|-------------|-----------|
+| `dbpia_search` | Simple keyword search | `searchall` (required), `page`, `pagecount`, `refresh` |
+| `dbpia_search_advanced` | Search with specific fields | `searchall`, `searchauthor`, `searchpublisher`, `searchbook`, `page`, `pagecount` |
+| `dbpia_top_papers` | Get popular papers | `pyear`, `pmonth` (req if pyear used), `category`, `page`, `pagecount` |
+| `dbpia_local_search` | Search downloaded cache | `query` (required), `remoteFallback` (bool) |
+
+### Utilities
+
+| Tool | Description | Arguments |
+|------|-------------|-----------|
+| `dbpia_open` | Open article in browser | `articleId` (required) |
+| `dbpia_cite` | Generate citation | `articleId` (required), `style` (chicago, apa, mla, bibtex, etc.) |
+| `dbpia_export` | Export cache to JSONL | `outputPath` (required) |
+| `dbpia_detail` | Get detailed metadata | `id` (required) - *Requires Business API Key* |
 
 ## Usage Examples
 
-### Search Papers
-```
-dbpia_search(searchall: "인공지능", pagecount: 10)
+### 1. Search for Papers
+**User Prompt:**
+> "Find papers about 'Artificial Intelligence' published in 2024."
+
+**Tool Call:**
+```javascript
+dbpia_search(searchall: "Artificial Intelligence", pyear: "2024")
 ```
 
-### Open in Browser
-```
-dbpia_open(articleId: "NODE12345678")
-```
+### 2. Get a Citation
+**User Prompt:**
+> "Generate an APA citation for the first paper."
 
-### Generate Citation
-```
+**Tool Call:**
+```javascript
 dbpia_cite(articleId: "NODE12345678", style: "apa")
 ```
 
-Supported styles: `chicago` (default), `apa`, `mla`, `bibtex`, `harvard`, `vancouver`
+### 3. Open Paper in Browser
+**User Prompt:**
+> "Open the detail page for this paper."
 
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DBPIA_API_KEY` | API key (required) | - |
-| `DBPIA_DB_PATH` | SQLite storage path | `~/.dbpia-mcp` |
-| `DBPIA_BUSINESS_API_KEY` | Business API key (for article detail) | - |
-
-## OCR Integration
-
-Index scanned PDFs with your own OCR CLI:
-
-```
-dbpia_fulltext_index(
-  articleId: "NODE123",
-  pdfPath: "/path/to/paper.pdf",
-  ocrCommand: "ocrmypdf {input} - | pdftotext - {output}"
-)
+**Tool Call:**
+```javascript
+dbpia_open(articleId: "NODE12345678")
 ```
 
 ## License
