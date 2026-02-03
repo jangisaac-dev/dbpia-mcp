@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "mcp": {
+    "dbpia": {
+      "type": "local",
+
+      // IMPORTANT:
+      // - use an absolute path OR a relative path that resolves from where you run OpenCode
+      // - if you run OpenCode from this repo root, "./dist/index.js" is typically fine
+      "command": ["node", "./dist/index.js"],
+
+      "enabled": true,
+
+      "environment": {
+        "DBPIA_API_KEY": "{env:DBPIA_API_KEY}",
+
+        // Choose a directory where dbpia-mcp can store SQLite data.
+        // This should be a directory path, not a file path.
+        "DBPIA_DB_PATH": "{env:DBPIA_DB_PATH}"
+      }
+    }
+  }
+}

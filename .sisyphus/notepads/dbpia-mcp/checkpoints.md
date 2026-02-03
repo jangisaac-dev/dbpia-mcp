@@ -1,0 +1,3 @@
+- [2026-02-03T10:00:00Z] [PASS] XML parser and normalization module implemented.
+- [2026-02-03T10:00:00Z] [PASS] Stable ID strategy (DBpia ID -> DOI -> Hash) implemented.
+- [2026-02-03T10:00:00Z] [PENDING] Verify with tests.

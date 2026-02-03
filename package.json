@@ -1,0 +1,56 @@
+{
+  "name": "dbpia-mcp",
+  "version": "0.0.1",
+  "description": "DBpia 논문 검색 MCP 서버",
+  "main": "dist/index.js",
+  "bin": {
+    "dbpia-mcp": "dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "test": "vitest run",
+    "smoke": "npm run build && node --loader ts-node/esm scripts/mcp-smoke.ts",
+    "dev": "tsc -w",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "dbpia",
+    "mcp",
+    "model-context-protocol",
+    "논문",
+    "학술",
+    "research"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "better-sqlite3": "^12.6.2",
+    "fast-xml-parser": "^5.3.4",
+    "iconv-lite": "^0.7.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/iconv-lite": "^0.0.1",
+    "@types/node": "^25.2.0",
+    "rimraf": "^6.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "undici": "^7.20.0",
+    "vitest": "^4.0.18"
+  }
+}

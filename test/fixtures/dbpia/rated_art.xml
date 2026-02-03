@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+    <status>
+        <code>200</code>
+        <message>success</message>
+    </status>
+    <result>
+        <total>1</total>
+        <items>
+            <item>
+                <id>NODE07654321</id>
+                <title>인기 논문 제목 (Rated Art)</title>
+                <authors>
+                    <author>이순신</author>
+                </authors>
+                <publisher>역사 학회</publisher>
+                <pub_date>2023-05-01</pub_date>
+                <link>http://dbpia.co.kr/journal/articleDetail?nodeId=NODE07654321</link>
+            </item>
+        </items>
+    </result>
+</root>

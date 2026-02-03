@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+    <status>
+        <code>200</code>
+        <message>success</message>
+    </status>
+    <result>
+        <total>1</total>
+        <items>
+            <item>
+                <id>NODE01234567</id>
+                <title>테스트 논문 제목 (Search)</title>
+                <authors>
+                    <author>홍길동</author>
+                </authors>
+                <publisher>테스트 학회</publisher>
+                <pub_date>2023-01-01</pub_date>
+                <link>http://dbpia.co.kr/journal/articleDetail?nodeId=NODE01234567</link>
+            </item>
+        </items>
+    </result>
+</root>
