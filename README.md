@@ -8,12 +8,6 @@ DBpia 논문 검색 MCP 서버
 2. 회원가입/로그인
 3. [키 등록관리](https://api.dbpia.co.kr/openApi/key/keyManage.do)에서 API 키 발급
 
-## 설치
-
-```bash
-npm install -g dbpia-mcp
-```
-
 ## OpenCode 설정
 
 `opencode.jsonc`에 추가:
@@ -23,7 +17,7 @@ npm install -g dbpia-mcp
   "mcp": {
     "dbpia": {
       "type": "local",
-      "command": ["npx", "dbpia-mcp"],
+      "command": ["npx", "dbpia-mcp@latest"],
       "environment": {
         "DBPIA_API_KEY": "발급받은_키"
       }
