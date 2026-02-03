@@ -57,9 +57,7 @@ export async function fetchDbpiaXml(
       });
 
       if (!response.ok) {
-        if (response.status >= 500) {
-          throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-        }
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
       }
 
       const contentType = response.headers.get('Content-Type') || '';
@@ -90,7 +88,8 @@ export async function fetchDbpiaXml(
       lastError = error;
       
       const isAbort = error.name === 'AbortError';
-      const shouldRetry = isAbort || (error.message && error.message.includes('HTTP Error'));
+      const isServerError = error.message && error.message.includes('HTTP Error: 5');
+      const shouldRetry = isAbort || isServerError;
       
       if (shouldRetry && attempt < maxRetries) {
         const backoff = retryBackoffMs * Math.pow(2, attempt);

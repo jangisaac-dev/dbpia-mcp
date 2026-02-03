@@ -11,8 +11,10 @@ import path from 'path';
 describe('Database and Cache Operations', () => {
   let db: Database.Database;
   const dbDir = './test_db';
+  const originalApiKey = process.env.DBPIA_API_KEY;
 
   beforeEach(() => {
+    process.env.DBPIA_API_KEY = 'test-api-key';
     if (fs.existsSync(dbDir)) {
       fs.rmSync(dbDir, { recursive: true });
     }
@@ -21,6 +23,7 @@ describe('Database and Cache Operations', () => {
   });
 
   afterEach(() => {
+    process.env.DBPIA_API_KEY = originalApiKey;
     db.close();
     if (fs.existsSync(dbDir)) {
       fs.rmSync(dbDir, { recursive: true });

@@ -24,16 +24,42 @@ export function normalizeDbpiaResponse(
   const rawItems = result?.items?.item || [];
   
   const items: NormalizedArticle[] = rawItems.map((item: any) => {
-    const authors = Array.isArray(item.authors?.author) 
-      ? item.authors.author.map((a: any) => typeof a === 'object' ? a['#text'] || '' : String(a))
-      : [];
+    // Extract authors - handle both array and single object cases
+    const authorData = item.authors?.author;
+    const authorArray = Array.isArray(authorData) ? authorData : (authorData ? [authorData] : []);
+    const authors = authorArray.map((a: any) => {
+      if (typeof a === 'string') return a;
+      if (typeof a === 'object') {
+        // DBpia returns author as object with 'name' property
+        return a.name || a['#text'] || '';
+      }
+      return String(a);
+    }).filter((name: string) => name.length > 0);
+
+    // Extract year from pub_date or issue.yymm
+    let year: string | undefined;
+    if (item.pub_date) {
+      year = String(item.pub_date).substring(0, 4);
+    } else if (item.issue?.yymm) {
+      // Format: "2019. 12. 30" -> extract year
+      const match = String(item.issue.yymm).match(/(\d{4})/);
+      year = match ? match[1] : undefined;
+    }
+
+    // Extract publisher - handle object with 'name' property
+    let publisher: string | undefined;
+    if (typeof item.publisher === 'string') {
+      publisher = item.publisher;
+    } else if (typeof item.publisher === 'object' && item.publisher?.name) {
+      publisher = item.publisher.name;
+    }
 
     const normalized: Partial<NormalizedArticle> = {
       title: item.title || '',
       authors,
-      year: item.pub_date ? String(item.pub_date).substring(0, 4) : undefined,
-      publisher: item.publisher,
-      url: item.link,
+      year,
+      publisher,
+      url: item.link || item.link_url,
       preview_url: item.preview_url,
       keywords: Array.isArray(item.keywords?.keyword) ? item.keywords.keyword : [],
       abstract: item.abstract || null,

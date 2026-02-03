@@ -1,16 +1,44 @@
 # dbpia-mcp
 
-DBpia 논문 검색 MCP 서버
+DBpia MCP server with PDF download, citation generation, and fulltext search.
 
-## API 키 발급
+## Features
 
-1. [DBpia Open API 포털](https://api.dbpia.co.kr/openApi/index.do) 접속
-2. 회원가입/로그인
-3. [키 등록관리](https://api.dbpia.co.kr/openApi/key/keyManage.do)에서 API 키 발급
+- **Search**: Keyword and advanced search
+- **PDF Download**: Automated login + download (Playwright)
+- **Citation**: Chicago (default), APA, MLA, BibTeX, Harvard, Vancouver
+- **Fulltext Search**: Index PDFs and search content (OCR CLI hook supported)
+- **Local Cache**: SQLite storage for offline access
 
-## OpenCode 설정
+## Installation
 
-`opencode.jsonc`에 추가:
+```bash
+npx dbpia-mcp@latest
+```
+
+### Browser Setup (for PDF download)
+
+Option 1: Use existing Chrome (recommended)
+```jsonc
+{
+  "environment": {
+    "DBPIA_USE_EXISTING_CHROME": "true",
+    "DBPIA_CHROME_PROFILE": "Default"
+  }
+}
+```
+
+Option 2: Install Playwright Chromium
+```bash
+npx playwright install chromium
+```
+
+## API Key
+
+1. [DBpia Open API Portal](https://api.dbpia.co.kr/openApi/index.do)
+2. Register and get API key from [Key Management](https://api.dbpia.co.kr/openApi/key/keyManage.do)
+
+## OpenCode Setup
 
 ```jsonc
 {
@@ -19,33 +47,63 @@ DBpia 논문 검색 MCP 서버
       "type": "local",
       "command": ["npx", "dbpia-mcp@latest"],
       "environment": {
-        "DBPIA_API_KEY": "발급받은_키"
+        "DBPIA_API_KEY": "your_api_key"
       }
     }
   }
 }
 ```
 
-**끝!**
+## Tools
 
-## 제공 도구
+| Tool | Description |
+|------|-------------|
+| `dbpia_search` | Keyword search |
+| `dbpia_search_advanced` | Advanced search (author, journal) |
+| `dbpia_top_papers` | Popular papers |
+| `dbpia_local_search` | Search local cache |
+| `dbpia_export` | Export to JSONL |
+| `dbpia_login` | Login for PDF download |
+| `dbpia_logout` | Logout |
+| `dbpia_login_status` | Check login status |
+| `dbpia_download` | Download PDF (requires login) |
+| `dbpia_cite` | Generate citation (Chicago default) |
+| `dbpia_fulltext_index` | Index PDF content (OCR supported) |
+| `dbpia_fulltext_search` | Search indexed content |
 
-| 도구 | 설명 |
-|------|------|
-| `dbpia_search` | 키워드 논문 검색 |
-| `dbpia_search_advanced` | 고급 검색 (저자, 학술지 등) |
-| `dbpia_top_papers` | 인기 논문 조회 |
-| `dbpia_local_search` | 로컬 캐시 검색 |
-| `dbpia_export` | 검색 결과 내보내기 |
+## Environment Variables
 
-## 환경변수 (선택)
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DBPIA_API_KEY` | API key (required) | - |
+| `DBPIA_DB_PATH` | SQLite storage path | `~/.dbpia-mcp` |
+| `DBPIA_BUSINESS_API_KEY` | Business API key (for detail) | - |
+| `DBPIA_USE_EXISTING_CHROME` | Use existing Chrome browser | `false` |
+| `DBPIA_CHROME_PROFILE` | Chrome profile name | `Default` |
+| `DBPIA_DOWNLOAD_DIR` | PDF download directory | `~/.dbpia-mcp/downloads` |
 
-| 변수 | 설명 | 기본값 |
-|------|------|--------|
-| `DBPIA_API_KEY` | API 키 (필수) | - |
-| `DBPIA_DB_PATH` | DB 저장 경로 | 프로젝트 폴더 |
-| `DBPIA_BUSINESS_API_KEY` | 비즈니스 API 키 | - |
+## Citation Styles
 
-## 라이선스
+Default: **Chicago**
+
+```
+dbpia_cite(articleId: "NODE123", style: "chicago")
+dbpia_cite(articleId: "NODE123", style: "apa")
+dbpia_cite(articleId: "NODE123", style: "bibtex")
+```
+
+## OCR Integration
+
+Use your own OCR CLI for scanned PDFs:
+
+```
+dbpia_fulltext_index(
+  articleId: "NODE123",
+  pdfPath: "/path/to/paper.pdf",
+  ocrCommand: "your-ocr-cli {input} -o {output}"
+)
+```
+
+## License
 
 MIT

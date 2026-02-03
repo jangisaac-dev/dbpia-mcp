@@ -31,7 +31,7 @@ export const TopPapersSchema = {
 
 export const LocalSearchSchema = {
   query: z.string().describe('Search query for title, authors, or abstract'),
-  remoteFallback: z.boolean().optional().default(true).describe('Fallback to remote search if no local results'),
+  remoteFallback: z.boolean().optional().default(false).describe('Fallback to remote search if no local results (default: false)'),
   page: z.number().optional().describe('Page number (for remote fallback)'),
   pagecount: z.number().optional().describe('Items per page (for remote fallback)'),
 };
@@ -43,4 +43,34 @@ export const ExportSchema = {
 export const DetailSchema = {
   id: z.string().describe('Article ID'),
   refresh: z.boolean().optional().describe('Force refresh from remote'),
+};
+
+export const LoginSchema = {
+  timeoutSeconds: z.number().optional().default(120).describe('Timeout in seconds to wait for manual login (default: 120)'),
+};
+
+export const LogoutSchema = {};
+
+export const LoginStatusSchema = {};
+
+export const DownloadSchema = {
+  articleId: z.string().describe('Article ID (nodeId)'),
+  outputDir: z.string().optional().describe('Directory to save the PDF'),
+  filename: z.string().optional().describe('Custom filename for the PDF'),
+};
+
+export const CiteSchema = {
+  articleId: z.string().describe('Article ID to generate citation for'),
+  style: z.enum(['chicago', 'apa', 'mla', 'bibtex', 'harvard', 'vancouver']).optional().default('chicago').describe('Citation style (default: chicago)'),
+};
+
+export const FulltextIndexSchema = {
+  articleId: z.string().describe('Article ID to index'),
+  pdfPath: z.string().optional().describe('Path to PDF file (if already downloaded)'),
+  ocrCommand: z.string().optional().describe('OCR CLI command template (use {input} and {output} placeholders)'),
+};
+
+export const FulltextSearchSchema = {
+  query: z.string().describe('Full-text search query'),
+  limit: z.number().optional().default(20).describe('Max results to return'),
 };

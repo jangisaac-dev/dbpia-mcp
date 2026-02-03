@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { openDb, migrate } from '../../src/db';
+import { openDb, migrate, migrations } from '../../src/db';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';

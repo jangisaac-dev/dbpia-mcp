@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { runQuery } from './runQuery.js';
 import * as fetchXmlModule from './fetchXml.js';
@@ -7,8 +7,10 @@ vi.mock('./fetchXml.js');
 
 describe('runQuery Concurrency', () => {
   let db: Database.Database;
+  const originalApiKey = process.env.DBPIA_API_KEY;
 
   beforeEach(() => {
+    process.env.DBPIA_API_KEY = 'test-api-key';
     db = new Database(':memory:');
     db.exec(`
       CREATE TABLE articles (
@@ -30,6 +32,11 @@ describe('runQuery Concurrency', () => {
       );
     `);
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    process.env.DBPIA_API_KEY = originalApiKey;
+    db.close();
   });
 
   it('should handle concurrent runQuery calls without DB locking issues', async () => {

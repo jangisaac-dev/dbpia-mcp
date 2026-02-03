@@ -38,10 +38,20 @@ export async function runQuery(options: RunQueryOptions): Promise<DbpiaNormaliza
     queryParams.key = apiKeyOverride;
   } else if (process.env.DBPIA_API_KEY) {
     queryParams.key = process.env.DBPIA_API_KEY;
+  } else {
+    throw new Error('DBPIA_API_KEY environment variable is not set. API calls require a valid key.');
   }
 
   const fetchResult = await dbpiaLimiter.schedule(() => fetchDbpiaXml(queryParams));
   const parsed = parseDbpiaXml(fetchResult.xml);
+
+  if (parsed?.root?.error || parsed?.error) {
+    const errorInfo = parsed.root?.error || parsed.error;
+    const errorCode = errorInfo?.code || errorInfo?.['@_code'] || 'UNKNOWN';
+    const errorMsg = errorInfo?.message || errorInfo?.['#text'] || 'API returned an error';
+    throw new Error(`DBpia API Error [${errorCode}]: ${errorMsg}`);
+  }
+
   const normalized = normalizeDbpiaResponse(parsed, target);
 
   await dbWriteMutex.runExclusive(async () => {

@@ -1,7 +1,7 @@
 {
   "name": "dbpia-mcp",
-  "version": "0.0.1",
-  "description": "DBpia 논문 검색 MCP 서버",
+  "version": "0.1.7",
+  "description": "DBpia MCP server with PDF download, citation generation, and fulltext search",
   "main": "dist/index.js",
   "bin": {
     "dbpia-mcp": "dist/index.js"
@@ -41,6 +41,7 @@
     "better-sqlite3": "^12.6.2",
     "fast-xml-parser": "^5.3.4",
     "iconv-lite": "^0.7.2",
+    "playwright": "^1.58.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {

@@ -2,7 +2,11 @@ import Database from 'better-sqlite3';
 import { NormalizedArticle } from '../dbpia/types.js';
 
 export function localSearch(db: Database.Database, query: string): NormalizedArticle[] {
-  const likeQuery = `%${query}%`;
+  if (!query || typeof query !== 'string' || query.trim().length === 0) {
+    return [];
+  }
+
+  const likeQuery = `%${query.trim()}%`;
   const stmt = db.prepare(`
     SELECT * FROM articles
     WHERE title LIKE ?

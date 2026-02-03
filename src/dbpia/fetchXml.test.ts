@@ -120,8 +120,7 @@ describe('fetchXml', () => {
         method: 'GET',
       }).reply(401, 'Unauthorized');
 
-      const result = await fetchDbpiaXml({ q: 'test' });
-      expect(result.status).toBe(401);
+      await expect(fetchDbpiaXml({ q: 'test' })).rejects.toThrow('HTTP Error: 401');
     });
   });
 });

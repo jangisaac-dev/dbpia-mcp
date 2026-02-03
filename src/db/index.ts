@@ -54,6 +54,11 @@ export const migrations: Migration[] = [
   },
 ];
 
+function columnExists(db: Database.Database, table: string, column: string): boolean {
+  const cols = db.pragma(`table_info(${table})`) as { name: string }[];
+  return cols.some(c => c.name === column);
+}
+
 export function migrate(db: Database.Database): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS schema_version (
@@ -71,6 +76,13 @@ export function migrate(db: Database.Database): void {
         db.exec(migration.sql);
         db.prepare('INSERT INTO schema_version (version) VALUES (?)').run(migration.id);
       }
+    }
+
+    if (!columnExists(db, 'articles', 'fulltext')) {
+      db.exec('ALTER TABLE articles ADD COLUMN fulltext TEXT');
+    }
+    if (!columnExists(db, 'articles', 'pdf_path')) {
+      db.exec('ALTER TABLE articles ADD COLUMN pdf_path TEXT');
     }
   })();
 }
