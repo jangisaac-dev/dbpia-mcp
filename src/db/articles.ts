@@ -9,6 +9,9 @@ export interface ArticleRow {
   pub_year: number;
   raw_json: string;
   fulltext?: string;
+  pdf_path?: string;
+  download_status?: 'pending' | 'downloaded' | 'unavailable';
+  downloaded_at?: string;
 }
 
 export function upsertArticles(db: Database.Database, items: NormalizedArticle[]): void {
@@ -42,6 +45,53 @@ export function upsertArticles(db: Database.Database, items: NormalizedArticle[]
 
 export function getArticleById(db: Database.Database, id: string): ArticleRow | undefined {
   return db.prepare('SELECT * FROM articles WHERE id = ?').get(id) as ArticleRow | undefined;
+}
+
+export function getArticleByNodeId(db: Database.Database, nodeId: string): ArticleRow | undefined {
+  return db
+    .prepare("SELECT * FROM articles WHERE raw_json LIKE ? OR raw_json LIKE ? LIMIT 1")
+    .get(`%nodeId=${nodeId}%`, `%\"id\":\"${nodeId}\"%`) as ArticleRow | undefined;
+}
+
+export function getArticleNodeId(article: Pick<ArticleRow, 'id'> & { raw_json?: string | null }): string {
+  if (article.id.startsWith('NODE')) {
+    return article.id;
+  }
+
+  const rawJsonText = typeof article.raw_json === 'string' ? article.raw_json : '';
+
+  if (!rawJsonText) {
+    return article.id;
+  }
+
+  try {
+    const raw = JSON.parse(rawJsonText) as Record<string, unknown>;
+    const rawId = typeof raw.id === 'string' ? raw.id : undefined;
+    if (rawId && rawId.startsWith('NODE')) {
+      return rawId;
+    }
+
+    const linkUrl = typeof raw.link_url === 'string' ? raw.link_url : undefined;
+    if (linkUrl) {
+      const match = linkUrl.match(/nodeId=(NODE\d+)/);
+      if (match?.[1]) {
+        return match[1];
+      }
+    }
+  } catch {
+    // fallback to regex on raw JSON text
+  }
+
+  const fallbackMatch = rawJsonText.match(/nodeId=(NODE\d+)/);
+  if (fallbackMatch?.[1]) {
+    return fallbackMatch[1];
+  }
+
+  return article.id;
+}
+
+export function resolveArticleByAnyId(db: Database.Database, idOrNodeId: string): ArticleRow | undefined {
+  return getArticleById(db, idOrNodeId) ?? getArticleByNodeId(db, idOrNodeId);
 }
 
 export function saveFulltext(db: Database.Database, articleId: string, fulltext: string): void {

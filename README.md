@@ -17,6 +17,7 @@ This server allows LLMs to search for academic papers, generate citations, cache
 - **Open in Browser**: Open article pages directly in your default browser
 - **Local Cache**: SQLite storage for offline access and export (7-day default cache)
 - **Export**: Export cached data to JSONL format
+- **PDF Full-text Indexing**: OCR/index PDF text with pluggable providers (local & cloud)
 
 ## Installation
 
@@ -40,23 +41,63 @@ npx dbpia-mcp@latest
 | `DBPIA_DB_PATH` | Directory for SQLite database | `~/.dbpia-mcp` |
 | `DBPIA_DEBUG` | Enable verbose logging | `false` |
 | `DBPIA_QUERY_TTL_DAYS` | Days to keep search results in cache | `7` |
+| `DBPIA_OCR_CMD_OWLOCR` | Command template for OwlOCR provider | - |
+| `DBPIA_OCR_CMD_TESSERACT` | Command template for Tesseract provider | - |
+| `DBPIA_OCR_CMD_PDFTOTEXT` | Command template for pdftotext provider | - |
+| `DBPIA_OCR_CMD_PADDLEOCR` | Command template for PaddleOCR provider | - |
+| `DBPIA_OCR_CMD_EASYOCR` | Command template for EasyOCR provider | - |
+| `DBPIA_OCR_CMD_GOOGLE_VISION` | Command template for Google Vision provider | - |
+| `DBPIA_OCR_CMD_AZURE_READ` | Command template for Azure Read provider | - |
+| `DBPIA_OCR_CMD_AWS_TEXTRACT` | Command template for AWS Textract provider | - |
+| `DBPIA_OCR_CMD_OCR_SPACE` | Command template for OCR.Space provider | - |
 
-### OpenCode / Claude Desktop Configuration
+### OpenCode configuration (opencode.json)
 
-Add this to your `opencode.json` or `claude_desktop_config.json`:
+OpenCode configures MCP servers under `mcp` (not `mcpServers`).
+
+There is **no separate `args` field** in OpenCode. Put the executable + arguments into the `command` **array**.
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "dbpia": {
+      "type": "local",
+      "command": ["npx", "-y", "dbpia-mcp@latest"],
+      "enabled": true,
+      "environment": {
+        "DBPIA_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### Claude Code configuration (.mcp.json)
+
+Claude Code uses its own MCP config files. For **project-scoped** configuration, add a `.mcp.json` at your project root (see Claude Code MCP docs).
+
+**Option A: configure via JSON**
 
 ```json
 {
   "mcpServers": {
     "dbpia": {
       "command": "npx",
-      "args": ["dbpia-mcp@latest"],
+      "args": ["-y", "dbpia-mcp@latest"],
       "env": {
         "DBPIA_API_KEY": "your_api_key_here"
       }
     }
   }
 }
+```
+
+**Option B: configure via Claude Code CLI**
+
+```bash
+claude mcp add --transport stdio --env DBPIA_API_KEY=your_api_key_here dbpia \
+  -- npx -y dbpia-mcp@latest
 ```
 
 ## Tools
@@ -78,6 +119,50 @@ Add this to your `opencode.json` or `claude_desktop_config.json`:
 | `dbpia_cite` | Generate citation | `articleId` (required), `style` (chicago, apa, mla, bibtex, etc.) |
 | `dbpia_export` | Export cache to JSONL | `outputPath` (required) |
 | `dbpia_detail` | Get detailed metadata | `id` (required) - *Requires Business API Key* |
+
+### Full-text & OCR
+
+| Tool | Description | Arguments |
+|------|-------------|-----------|
+| `dbpia_fulltext_index` | OCR/index PDF into article fulltext | `articleId` (required), `pdfPath`, `provider`, `fallbackProviders`, `languages`, `pages`, `dpi`, `timeoutMs`, `commandTemplate`, `providerCommands` |
+| `dbpia_fulltext_search` | Search indexed fulltext | `query` (required), `limit` |
+
+#### OCR Providers (non-Owl supported)
+
+You can choose local or third-party OCR providers:
+
+- Local: `tesseract`, `pdftotext`, `paddleocr`, `easyocr`
+- Cloud/3rd-party: `google-vision`, `azure-read`, `aws-textract`, `ocr-space`
+- `auto`: tries fallback chain (`owlocr -> tesseract -> pdftotext`) unless overridden
+
+Set provider-specific command templates via env vars (or pass `providerCommands` in tool args).
+
+Template placeholders:
+- `{input}` PDF path
+- `{output}` output text file path
+- `{langs}` language code string (e.g., `kor+eng`)
+- `{dpi}` DPI value
+- `{pages}` page selector
+
+Example command templates:
+
+```bash
+export DBPIA_OCR_CMD_TESSERACT='tesseract "{input}" stdout -l {langs} --oem 1 --psm 6'
+export DBPIA_OCR_CMD_PDFTOTEXT='pdftotext "{input}" -'
+```
+
+Example tool call:
+
+```javascript
+dbpia_fulltext_index(
+  articleId: "NODE12345678",
+  pdfPath: "/path/to/paper.pdf",
+  provider: "paddleocr",
+  fallbackProviders: ["tesseract", "pdftotext"],
+  languages: ["ko", "en"],
+  timeoutMs: 180000
+)
+```
 
 ## Usage Examples
 

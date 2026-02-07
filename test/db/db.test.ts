@@ -38,7 +38,87 @@ describe('Database and Migrations', () => {
     expect(tableNames).toContain('query_cache');
 
     const version = db.prepare('SELECT MAX(version) as version FROM schema_version').get() as { version: number };
-    expect(version.version).toBe(1);
+    expect(version.version).toBe(2);
+
+    db.close();
+  });
+
+  it('should have new columns in articles table', () => {
+    const db = openDb({ dbDir: tempDir });
+    migrate(db);
+
+    const cols = db.pragma('table_info(articles)') as { name: string }[];
+    const colNames = cols.map(c => c.name);
+
+    expect(colNames).toContain('fulltext');
+    expect(colNames).toContain('pdf_path');
+    expect(colNames).toContain('download_status');
+    expect(colNames).toContain('downloaded_at');
+
+    db.close();
+  });
+
+  it('should create sessions and external_pdfs tables', () => {
+    const db = openDb({ dbDir: tempDir });
+    migrate(db);
+
+    const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as { name: string }[];
+    const tableNames = tables.map(t => t.name);
+
+    expect(tableNames).toContain('sessions');
+    expect(tableNames).toContain('external_pdfs');
+
+    db.close();
+  });
+
+  it('should support CRUD on sessions table', () => {
+    const db = openDb({ dbDir: tempDir });
+    migrate(db);
+
+    const session = {
+      id: 'session-1',
+      cookies_json: JSON.stringify([{ name: 'test', value: '123' }]),
+      auth_type: 'institution',
+      institution_name: 'Test Univ',
+      expires_at: '2026-12-31 23:59:59'
+    };
+
+    db.prepare(`
+      INSERT INTO sessions (id, cookies_json, auth_type, institution_name, expires_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(session.id, session.cookies_json, session.auth_type, session.institution_name, session.expires_at);
+
+    const saved = db.prepare('SELECT * FROM sessions WHERE id = ?').get(session.id) as any;
+    expect(saved.id).toBe(session.id);
+    expect(saved.auth_type).toBe(session.auth_type);
+    expect(saved.institution_name).toBe(session.institution_name);
+
+    db.close();
+  });
+
+  it('should support CRUD on external_pdfs table', () => {
+    const db = openDb({ dbDir: tempDir });
+    migrate(db);
+
+    const pdf = {
+      id: 'pdf-1',
+      title: 'External Paper',
+      authors: 'Author A',
+      year: 2025,
+      source: 'Google Scholar',
+      pdf_path: '/path/to/pdf',
+      fulltext: 'Extracted text'
+    };
+
+    db.prepare(`
+      INSERT INTO external_pdfs (id, title, authors, year, source, pdf_path, fulltext)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(pdf.id, pdf.title, pdf.authors, pdf.year, pdf.source, pdf.pdf_path, pdf.fulltext);
+
+    const saved = db.prepare('SELECT * FROM external_pdfs WHERE id = ?').get(pdf.id) as any;
+    expect(saved.id).toBe(pdf.id);
+    expect(saved.title).toBe(pdf.title);
+    expect(saved.fulltext).toBe(pdf.fulltext);
 
     db.close();
   });

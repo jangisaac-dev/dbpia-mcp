@@ -52,6 +52,34 @@ export const migrations: Migration[] = [
       CREATE INDEX IF NOT EXISTS idx_query_cache_tool ON query_cache(tool);
     `,
   },
+  {
+    id: 2,
+    name: 'session_and_pdf_metadata',
+    sql: `
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        cookies_json TEXT,
+        auth_type TEXT CHECK(auth_type IN ('institution', 'personal', 'unknown')),
+        institution_name TEXT,
+        expires_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS external_pdfs (
+        id TEXT PRIMARY KEY,
+        title TEXT,
+        authors TEXT,
+        year INTEGER,
+        source TEXT,
+        pdf_path TEXT,
+        fulltext TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+      CREATE INDEX IF NOT EXISTS idx_external_pdfs_title ON external_pdfs(title);
+    `,
+  },
 ];
 
 function columnExists(db: Database.Database, table: string, column: string): boolean {
@@ -83,6 +111,12 @@ export function migrate(db: Database.Database): void {
     }
     if (!columnExists(db, 'articles', 'pdf_path')) {
       db.exec('ALTER TABLE articles ADD COLUMN pdf_path TEXT');
+    }
+    if (!columnExists(db, 'articles', 'download_status')) {
+      db.exec("ALTER TABLE articles ADD COLUMN download_status TEXT CHECK(download_status IN ('pending', 'downloaded', 'unavailable')) DEFAULT 'pending'");
+    }
+    if (!columnExists(db, 'articles', 'downloaded_at')) {
+      db.exec('ALTER TABLE articles ADD COLUMN downloaded_at DATETIME');
     }
   })();
 }

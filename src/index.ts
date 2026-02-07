@@ -9,9 +9,19 @@ import {
   ExportSchema,
   DetailSchema,
   OpenArticleSchema,
+  LoginSchema,
+  SessionStatusSchema,
   CiteSchema,
+  CiteasySchema,
   FulltextIndexSchema,
-  FulltextSearchSchema
+  FulltextSearchSchema,
+  CheckDownloadSchema,
+  DownloadSchema,
+  PdfListSchema,
+  PdfInfoSchema,
+  PdfOpenSchema,
+  PdfDeleteSchema,
+  PdfRegisterSchema
 } from "./mcp/schemas.js";
 import {
   handleSearch,
@@ -21,9 +31,19 @@ import {
   handleExport,
   handleDetail,
   handleOpenArticle,
+  handleLogin,
+  handleSessionStatus,
   handleCite,
+  handleCiteasy,
   handleFulltextIndex,
-  handleFulltextSearch
+  handleFulltextSearch,
+  handleCheckDownload,
+  handleDownload,
+  handlePdfList,
+  handlePdfInfo,
+  handlePdfOpen,
+  handlePdfDelete,
+  handlePdfRegister
 } from "./mcp/tools.js";
 import { openDb, migrate } from "./db/index.js";
 import path from "path";
@@ -117,10 +137,31 @@ function registerTools(db: Db): void {
   );
 
   server.tool(
+    "dbpia_login",
+    "Login to DBpia with credentials and persist session cookies.",
+    LoginSchema,
+    safeTool("dbpia_login", (args) => handleLogin(db, args))
+  );
+
+  server.tool(
+    "dbpia_session_status",
+    "Check current DBpia login session status.",
+    SessionStatusSchema,
+    safeTool("dbpia_session_status", (args) => handleSessionStatus(db, args))
+  );
+
+  server.tool(
     "dbpia_cite",
     "Generate citation for an article in various styles (Chicago default, APA, MLA, BibTeX, etc.).",
     CiteSchema,
     safeTool("dbpia_cite", (args) => handleCite(db, args))
+  );
+
+  server.tool(
+    "dbpia_citeasy",
+    "Run citation pipeline: optional download + PDF state lookup + citation formatting.",
+    CiteasySchema,
+    safeTool("dbpia_citeasy", (args) => handleCiteasy(db, args))
   );
 
   server.tool(
@@ -135,6 +176,55 @@ function registerTools(db: Db): void {
     "Search indexed fulltext content.",
     FulltextSearchSchema,
     safeTool("dbpia_fulltext_search", (args) => handleFulltextSearch(db, args))
+  );
+
+  server.tool(
+    "dbpia_check_download",
+    "Check whether an article is free, paid, or unavailable for download.",
+    CheckDownloadSchema,
+    safeTool("dbpia_check_download", (args) => handleCheckDownload(db, args))
+  );
+
+  server.tool(
+    "dbpia_download",
+    "Download article PDF when available (assumes active login session).",
+    DownloadSchema,
+    safeTool("dbpia_download", (args) => handleDownload(db, args))
+  );
+
+  server.tool(
+    "dbpia_pdf_list",
+    "List managed PDF files with optional filters.",
+    PdfListSchema,
+    safeTool("dbpia_pdf_list", (args) => handlePdfList(db, args))
+  );
+
+  server.tool(
+    "dbpia_pdf_info",
+    "Get metadata for a managed PDF.",
+    PdfInfoSchema,
+    safeTool("dbpia_pdf_info", (args) => handlePdfInfo(db, args))
+  );
+
+  server.tool(
+    "dbpia_pdf_open",
+    "Open a managed PDF in the default system viewer.",
+    PdfOpenSchema,
+    safeTool("dbpia_pdf_open", (args) => handlePdfOpen(db, args))
+  );
+
+  server.tool(
+    "dbpia_pdf_delete",
+    "Delete a managed PDF and update metadata.",
+    PdfDeleteSchema,
+    safeTool("dbpia_pdf_delete", (args) => handlePdfDelete(db, args))
+  );
+
+  server.tool(
+    "dbpia_pdf_register",
+    "Register an existing local PDF to an article or as standalone.",
+    PdfRegisterSchema,
+    safeTool("dbpia_pdf_register", (args) => handlePdfRegister(db, args))
   );
 }
 
