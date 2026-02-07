@@ -38,6 +38,8 @@ npx dbpia-mcp@latest
 |----------|-------------|---------|
 | `DBPIA_API_KEY` | **Required**. Your DBpia Open API Key | - |
 | `DBPIA_BUSINESS_API_KEY` | Optional. Required for `dbpia_detail` tool | - |
+| `DBPIA_USER_ID` | Optional. DBpia login ID for `dbpia_login` | - |
+| `DBPIA_USER_PW` | Optional. DBpia login password for `dbpia_login` | - |
 | `DBPIA_DB_PATH` | Directory for SQLite database | `~/.dbpia-mcp` |
 | `DBPIA_DEBUG` | Enable verbose logging | `false` |
 | `DBPIA_QUERY_TTL_DAYS` | Days to keep search results in cache | `7` |
@@ -116,9 +118,30 @@ claude mcp add --transport stdio --env DBPIA_API_KEY=your_api_key_here dbpia \
 | Tool | Description | Arguments |
 |------|-------------|-----------|
 | `dbpia_open` | Open article in browser | `articleId` (required) |
+| `dbpia_login` | Login with environment or explicit credentials and persist cookies | `userId`, `userPw`, `autoLogin`, `idSave` |
+| `dbpia_session_status` | Check saved session (optionally via `/member/me`) | `remote` (default true) |
 | `dbpia_cite` | Generate citation | `articleId` (required), `style` (chicago, apa, mla, bibtex, etc.) |
+| `dbpia_download_link` | Parse `downloadData` and return final download URL | `articleId` (required), `depth`, `shape`, `systemCode` |
 | `dbpia_export` | Export cache to JSONL | `outputPath` (required) |
 | `dbpia_detail` | Get detailed metadata | `id` (required) - *Requires Business API Key* |
+
+### Login and Download Permission Policy
+
+- Search tools work with API keys only.
+- Download-related tools require authenticated DBpia session cookies.
+- `dbpia_login` uses either explicit args (`userId`, `userPw`) or environment variables:
+  - `DBPIA_USER_ID` / `DBPIA_USER_PW`
+  - fallback aliases: `DBPIA_LOGIN_ID` / `DBPIA_LOGIN_PW`
+- `dbpia_download_link` is restricted to authorized institution sessions.
+  - If parsing is not possible (no session / non-institution / no link), response includes guidance and `nextAction: "open_detail"` with `detailUrl` so user can continue on the detail page.
+
+#### Recommended flow
+
+1. `dbpia_search` to find article
+2. `dbpia_login` to persist session cookies
+3. `dbpia_session_status` to verify authentication and institution status
+4. `dbpia_download_link` to parse final download URL
+5. If `success=false` and `nextAction="open_detail"`, open `detailUrl` and proceed manually
 
 ### Full-text & OCR
 

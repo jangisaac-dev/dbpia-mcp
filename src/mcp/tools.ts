@@ -8,6 +8,7 @@ import { getArticleById, searchFulltext, type ArticleRow } from '../db/articles.
 import { createDefaultOcrClient, processWithOcr, type OcrConfig } from '../ocr/interface.js';
 import { checkDownloadAvailability } from '../download/checkDownload.js';
 import { downloadPdf } from '../download/download.js';
+import { buildDownloadLink } from '../download/link.js';
 import { deletePdf, getPdfInfo, listPdfs, openPdfById, registerExternalPdf } from '../pdf/manager.js';
 import { PlaywrightManager } from '../browser/playwright.js';
 import { getSessionStatus, getSessionStatusRemote, loginWithCredentials } from '../auth/login.js';
@@ -404,6 +405,26 @@ export async function handleDownload(db: Database.Database, args: any) {
   return {
     content: [{ type: 'text' as const, text: result.message }],
     structuredContent: result
+  };
+}
+
+export async function handleDownloadLink(db: Database.Database, args: any) {
+  const { articleId, depth, shape, systemCode } = args;
+  const result = await buildDownloadLink(db, articleId, {
+    payloadOverrides: {
+      depth,
+      shape,
+      systemCode,
+    },
+  });
+
+  const detailHint = result.nextAction === 'open_detail' && result.detailUrl
+    ? ` Open detail page: ${result.detailUrl}`
+    : '';
+
+  return {
+    content: [{ type: 'text' as const, text: `${result.message}${detailHint}` }],
+    structuredContent: result,
   };
 }
 

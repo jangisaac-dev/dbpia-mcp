@@ -17,6 +17,7 @@ import {
   FulltextSearchSchema,
   CheckDownloadSchema,
   DownloadSchema,
+  DownloadLinkSchema,
   PdfListSchema,
   PdfInfoSchema,
   PdfOpenSchema,
@@ -39,6 +40,7 @@ import {
   handleFulltextSearch,
   handleCheckDownload,
   handleDownload,
+  handleDownloadLink,
   handlePdfList,
   handlePdfInfo,
   handlePdfOpen,
@@ -190,6 +192,13 @@ function registerTools(db: Db): void {
     "Download article PDF when available (assumes active login session).",
     DownloadSchema,
     safeTool("dbpia_download", (args) => handleDownload(db, args))
+  );
+
+  server.tool(
+    "dbpia_download_link",
+    "Parse DBpia downloadData response and return final download URL.",
+    DownloadLinkSchema,
+    safeTool("dbpia_download_link", (args) => handleDownloadLink(db, args))
   );
 
   server.tool(

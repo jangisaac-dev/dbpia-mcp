@@ -104,6 +104,13 @@ export const DownloadSchema = {
   autoLogin: z.boolean().optional().default(false).describe('Use DBpia site-side auto-login session only; do not open interactive login when missing'),
 };
 
+export const DownloadLinkSchema = {
+  articleId: z.string().describe('Article ID or nodeId to parse download URL for'),
+  depth: z.string().optional().describe('Optional override for downloadData depth'),
+  shape: z.string().optional().describe('Optional override for downloadData shape'),
+  systemCode: z.string().optional().describe('Optional override for downloadData systemCode'),
+};
+
 export const PdfListSchema = {
   year: z.number().int().optional().describe('Filter by publication year'),
   journal: z.string().optional().describe('Filter by journal substring (case-insensitive)'),
